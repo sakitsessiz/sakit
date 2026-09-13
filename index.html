@@ -1,0 +1,2387 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="AuctionLand">
+    <title>AuctionLand Logistika & Maliyyə Paneli</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #e2e8f0;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+
+        /* Çap üçün CSS */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: #000 !important;
+                background: #fff !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* ================================================
+           MOBİL RESPONSIVE (iOS/telefon) DÜZƏLİŞLƏRİ
+           ================================================ */
+        @media (max-width: 768px) {
+            html, body {
+                overflow-x: hidden;
+                width: 100%;
+            }
+
+            /* Header: loqo üstdə, düymələr altda, tam en, alt-alta düzülür */
+            #header-inner {
+                height: auto;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+            }
+
+            #header-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            #header-actions button {
+                width: 100%;
+                min-height: 44px;
+                justify-content: center;
+            }
+
+            /* Mobildə "hidden md:inline" / "hidden lg:inline" ilə gizlədilmiş
+               düymə mətnləri geri göstərilir ki, düymələr yalnız ikon olmasın */
+            #header-actions button span {
+                display: inline-flex !important;
+            }
+
+            /* KPI kartları */
+            #kpi-grid {
+                gap: 0.5rem;
+            }
+
+            /* Filtrlər Paneli: axtarış, seçimlər və görünüş düymələri tam enli, alt-alta */
+            #filters-panel {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            #filters-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.6rem;
+                width: 100%;
+            }
+
+            #filters-group > div,
+            #filters-group select,
+            #filters-group input {
+                width: 100% !important;
+                min-height: 44px;
+                box-sizing: border-box;
+            }
+
+            #filters-group input,
+            #filters-group select {
+                font-size: 16px; /* iOS-da fokuslananda avtomatik zoom-un qarşısını alır */
+            }
+
+            #view-toggle-wrap {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            #view-toggle-wrap > div {
+                width: 100%;
+            }
+
+            #view-toggle-wrap button {
+                flex: 1;
+                min-height: 44px;
+            }
+
+            /* Bütün digər əsas düymələr üçün minimum toxunma ölçüsü */
+            main button,
+            .modal-content button,
+            button[onclick] {
+                min-height: 44px;
+            }
+
+            /* Modal pəncərələr tam ekrana yaxın olsun */
+            main {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            /* Cədvəl görünüşü: üfüqi sürüşdürmə aktiv, mətn ölçüsü kiçilir ki, sıxılsın */
+            #cars-container table {
+                font-size: 11px;
+                min-width: 640px; /* sürüşdürərək tam görmək üçün */
+            }
+
+            #cars-container table th,
+            #cars-container table td {
+                padding: 0.5rem !important;
+                white-space: nowrap;
+            }
+
+            /* Yan Analitika Paneli tam ekran açılsın */
+            #logistics-analytics-section {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16 antialiased relative">
+    <!-- Toast Bildiriş -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3 border border-slate-700">
+        <div id="toast-icon-wrap" class="bg-emerald-500 p-1.5 rounded-full text-white text-xs"><i id="toast-icon" class="fa-solid fa-check"></i></div>
+        <span id="toast-message" class="text-sm font-medium">Əməliyyat uğurla yerinə yetirildi!</span>
+    </div>
+
+    <div id="analyticsBackdrop" onclick="toggleLogisticsAnalytics(false)" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden transition-opacity duration-300 opacity-0"></div>
+
+    <!-- Yan Analitika Paneli -->
+    <div id="logistics-analytics-section" class="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+        <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 bg-indigo-100 text-indigo-600 rounded-2xl border border-indigo-200 text-xl">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">Port Və Lokasiya Analizi</h2>
+                    <p class="text-xs text-slate-500 font-medium">Uduş tarixindən Poti-yə çatdırılma statistikası</p>
+                </div>
+            </div>
+            <button onclick="toggleLogisticsAnalytics(false)" class="p-2 text-slate-400 hover:text-slate-700 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div class="flex gap-2">
+                    <button id="search-mode-port" onclick="setAnalyticsSearchMode('port')" class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-indigo-600 text-white transition shadow-sm">⚓ Portlar Üzrə</button>
+                    <button id="search-mode-location" onclick="setAnalyticsSearchMode('location')" class="flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition">📍 Lokasiya Üzrə</button>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                    <input type="text" id="analytics-search-input" oninput="renderLogisticsAnalytics()" placeholder="Port və ya lokasiya axtarın..." class="w-full bg-white border border-slate-200 text-slate-900 text-xs rounded-xl pl-9 pr-4 py-2.5 focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+
+            <div id="analytics-stats-summary" class="grid grid-cols-2 gap-3">
+                <div class="bg-indigo-50/70 border border-indigo-100 p-4 rounded-2xl">
+                    <span class="text-[11px] text-indigo-600 font-bold block uppercase">Uduş ➔ Poti Ortalama</span>
+                    <span id="analytics-avg-days" class="text-2xl font-black text-indigo-950 mt-1 block">0 gün</span>
+                </div>
+                <div class="bg-emerald-50/70 border border-emerald-100 p-4 rounded-2xl">
+                    <span class="text-[11px] text-emerald-600 font-bold block uppercase">Məlum Tarixli Nəqliyyat</span>
+                    <span id="analytics-total-cars" class="text-2xl font-black text-emerald-950 mt-1 block">0 ədəd</span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Tarixçə Və Gəliş Siyahısı</h3>
+                    <span id="analytics-count-badge" class="text-[11px] font-bold bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full">0 tapıldı</span>
+                </div>
+                <div id="analytics-history-list" class="space-y-2.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yuxarı Header -->
+    <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div id="header-inner" class="max-w-[1750px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-red-600 p-3 rounded-2xl shadow-lg shadow-red-500/20 text-white font-extrabold text-xl tracking-tighter flex items-center gap-2">
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Auction<span class="text-red-600">Land</span></h1>
+                    <p class="text-xs text-slate-500 font-semibold hidden sm:block">Logistika Və Maliyyə Paneli</p>
+                </div>
+            </div>
+            
+            <div id="header-actions" class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="toggleLogisticsAnalytics(true)" id="btn-analytics-toggle" title="Port və lokasiya üzrə çatdırılma analitikası" class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 border border-indigo-500 shadow-sm">
+                    <i class="fa-solid fa-anchor"></i>
+                    <span class="hidden lg:inline">Port & Lokasiya Analizi</span>
+                </button>
+
+                <button onclick="openPotiTrackingModal()" title="Poti gəlişləri, etibarnamə və yol pulu nəzarəti" class="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 border border-amber-400 shadow-sm">
+                    <i class="fa-solid fa-file-signature text-slate-950"></i>
+                    <span class="hidden lg:inline">Poti & Etibarnamə Nəzarəti</span>
+                </button>
+
+                <button onclick="toggleAdminPanel()" id="btn-admin-toggle" title="Gizli Maliyyə Paneli" class="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 text-sm font-bold rounded-xl transition flex items-center justify-center border border-slate-700 shadow-md">
+                    <i class="fa-solid fa-lock" id="admin-icon"></i>
+                </button>
+
+                <button id="btn-final-finance" onclick="openFinalFinanceReport()" class="hidden px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 border border-emerald-500 shadow-sm">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Yekun Maliyyə Analizi</span>
+                </button>
+
+                <button onclick="manualRefreshData()" id="btn-cloud-refresh" title="Cloud-dakı ən son məlumatları çək" class="px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2 border border-blue-200">
+                    <i class="fa-solid fa-rotate text-blue-600" id="btn-cloud-refresh-icon"></i>
+                    <span id="btn-cloud-refresh-text" class="hidden md:inline">Məlumatları Yenilə 🔄</span>
+                </button>
+
+                <button onclick="exportDataJSON()" title="Onlayn datanın nüsxəsini kompüterə endir" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-semibold rounded-xl transition flex items-center gap-2 border border-slate-200">
+                    <i class="fa-solid fa-download text-slate-600"></i>
+                    <span class="hidden md:inline">Ehtiyat Kopya</span>
+                </button>
+
+                <button onclick="openModal()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-red-500/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Yeni Maşın</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Əsas Məzmun Area -->
+    <main class="max-w-[1750px] mx-auto px-4 sm:px-8 mt-6 space-y-6">
+
+        <!-- Gizli Maliyyə Bölməsi (PIN açıldıqda görünür) -->
+        <div id="financial-analytics-section" class="hidden bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-2xl border border-amber-500/20 text-xl">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-400">Mənfəət Və Xalis Qazanc Analitikası</h2>
+                        <p class="text-xs text-slate-400">Seçilmiş il və aylar üzrə xalis mənfəət göstəriciləri</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 uppercase font-bold tracking-wider block">Ümumi Net Qazanc</span>
+                    <span class="text-2xl sm:text-3xl font-black text-emerald-400" id="total-net-profit">$0</span>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-amber-400"></i> Mənfəət Bölgüsü
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="monthly-profit-cards"></div>
+            </div>
+        </div>
+
+        <!-- KPI Statistikaları -->
+        <div id="kpi-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ümumi Avtomobil</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-slate-900" id="kpi-total">0</div>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Auksion / Pikap</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-amber-600" id="kpi-auction">0</div>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Anbarda / Portda</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-indigo-600" id="kpi-warehouse">0</div>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Gəmidə (Okean)</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-blue-600" id="kpi-ship">0</div>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-purple-600 uppercase tracking-wider">Potidədir</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-purple-600" id="kpi-poti">0</div>
+            </div>
+            <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                <div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Bakıdadır</div>
+                <div class="text-2xl sm:text-3xl font-black mt-1 text-emerald-600" id="kpi-baku">0</div>
+            </div>
+        </div>
+
+        <!-- Filtrlər Panel -->
+        <div id="filters-panel" class="bg-white border border-slate-200 p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+            <div id="filters-group" class="flex flex-wrap items-center gap-3">
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="text" id="filter-search" oninput="renderApp()" placeholder="Müştəri adı, Model, Port..." class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-red-500 focus:bg-white transition">
+                </div>
+
+                <select id="filter-year" onchange="renderApp()" class="bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-red-500">
+                    <option value="ALL">📅 Bütün İllər</option>
+                </select>
+
+                <select id="filter-month" onchange="renderApp()" class="bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-semibold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-red-500">
+                    <option value="ALL">🗓️ Bütün Aylar</option>
+                    <option value="01">Yanvar</option>
+                    <option value="02">Fevral</option>
+                    <option value="03">Mart</option>
+                    <option value="04">Aprel</option>
+                    <option value="05">May</option>
+                    <option value="06">İyun</option>
+                    <option value="07">İyul</option>
+                    <option value="08">Avqust</option>
+                    <option value="09">Sentyabr</option>
+                    <option value="10">Oktyabr</option>
+                    <option value="11">Noyabr</option>
+                    <option value="12">Dekabr</option>
+                </select>
+                
+                <select id="filter-location" onchange="renderApp()" class="bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-red-500">
+                    <option value="ALL">📍 Bütün Məkanlar</option>
+                </select>
+
+                <select id="filter-port" onchange="renderApp()" class="bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-red-500">
+                    <option value="ALL">⚓ Bütün Çıxış Portları</option>
+                </select>
+
+                <select id="filter-status" onchange="renderApp()" class="bg-slate-50 border border-slate-200 text-slate-900 text-xs sm:text-sm font-medium rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-red-500">
+                    <option value="ALL">Bütün Statuslar</option>
+                    <option value="Auksionda">Auksionda</option>
+                    <option value="Anbara gedir">Anbara gedir</option>
+                    <option value="Anbarda">Anbarda</option>
+                    <option value="Gəmidə">Gəmidə</option>
+                    <option value="Potidədir">Potidədir</option>
+                    <option value="Bakıdadır">Bakıdadır</option>
+                </select>
+            </div>
+
+            <div id="view-toggle-wrap" class="flex items-center justify-end border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100">
+                <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
+                    <button id="btn-view-card" onclick="setViewMode('card')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-white text-red-600 shadow-sm">
+                        <i class="fa-solid fa-grip"></i> Kartlar
+                    </button>
+                    <button id="btn-view-table" onclick="setViewMode('table')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-list"></i> Cədvəl
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avtomobillər Siyahısı Container -->
+        <div id="cars-container"></div>
+
+    </main>
+
+    <!-- Poti Və Etibarnamə Modalı -->
+    <div id="potiTrackingModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 text-slate-900 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30 text-xl">
+                        <i class="fa-solid fa-file-signature"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold">Poti Çatdırılma Və Etibarnamə Nəzarəti</h3>
+                        <p class="text-xs text-slate-400">Yaxınlaşan çatma tarixləri, etibarnamə göndərişi və yol pulu ödənişləri</p>
+                    </div>
+                </div>
+                <button onclick="closePotiTrackingModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+                <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-xs font-bold text-slate-700">Süzgəc:</label>
+                        <select id="poti-tracking-filter" onchange="renderPotiTrackingList()" class="bg-white border border-slate-200 text-xs font-bold rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-amber-500">
+                            <option value="SOON_20">⚡ Son 15-20 Gün Qalanlar Və Potidə Olanlar</option>
+                            <option value="ALL">📅 Bütün Poti Tarixi Olan Avtomobillər</option>
+                            <option value="NO_ETIBARNAME">⚠️ Etibarnaməsi Hazır Olmayanlar</option>
+                            <option value="NO_SHIPPING">⏳ Yol Pulu Ödənilməyənlər</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-xs font-bold">
+                        <span id="stat-poti-total" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-200">0 Yaxınlaşan Maşın</span>
+                        <span id="stat-poti-no-doc" class="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-900 border border-rose-200">0 Etibarnaməsi Yoxdur</span>
+                    </div>
+                </div>
+
+                <div id="poti-tracking-list" class="space-y-3.5"></div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <button onclick="closePotiTrackingModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">Bağla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yekun Maliyyə Analizi Modalı -->
+    <div id="finalFinanceReportModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 text-slate-900 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="p-5 bg-slate-900 text-white flex items-center justify-between no-print">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30 text-xl">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold">Yekun Maliyyə Analizi Hesabatı</h3>
+                        <p class="text-xs text-slate-400">Ümumi gəlirlər, real ödənişlər və xalis mənfəət təhlili</p>
+                    </div>
+                </div>
+                <button onclick="closeFinalFinanceReport()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="print-area" class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                <div class="border-b border-slate-200 pb-4 flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900">AuctionLand</h1>
+                        <p class="text-xs text-slate-500 font-bold">YEKUN MALİYYƏ HESABATI VƏ NƏTİJƏ ANALİZİ</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-500 font-mono">
+                        <p>Tarix: <span id="report-date">-</span></p>
+                        <p>Ümumi Avtomobil: <span id="report-total-cars-count" class="font-bold text-slate-800">0</span> ədəd</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl">
+                        <span class="text-[11px] font-bold text-blue-700 uppercase block">Ümumi Dövriyyə (Müştəri)</span>
+                        <span id="rpt-client-total" class="text-xl font-black text-blue-950 mt-1 block">$0</span>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl">
+                        <span class="text-[11px] font-bold text-rose-700 uppercase block">Real Xərclər</span>
+                        <span id="rpt-real-total" class="text-xl font-black text-rose-950 mt-1 block">$0</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
+                        <span class="text-[11px] font-bold text-amber-700 uppercase block">Ümumi Xidmət Haqqı</span>
+                        <span id="rpt-service-total" class="text-xl font-black text-amber-950 mt-1 block">$0</span>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+                        <span class="text-[11px] font-bold text-emerald-700 uppercase block">Xalis Mənfəət (Net Profit)</span>
+                        <span id="rpt-net-profit" class="text-xl font-black text-emerald-950 mt-1 block">$0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-extrabold uppercase text-emerald-700 flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-arrow-down-left text-emerald-600"></i> Müştəri Ödənişləri (Gəlir Balansı)
+                        </h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Auksion Qiymətləri:</span>
+                                <span id="rpt-car-costs" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Deyilən Nəqliyyat/Yol Xərci:</span>
+                                <span id="rpt-client-ship" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Deyilən Sığorta Haqqı:</span>
+                                <span id="rpt-client-ins" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Deyilən Poti-Bakı Xərci:</span>
+                                <span id="rpt-client-poti" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 font-bold text-emerald-700 pt-1">
+                                <span>Birbaşa Xidmət Haqqı Qazancı:</span>
+                                <span id="rpt-service-fee-sub" class="font-mono">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <h4 class="text-xs font-extrabold uppercase text-rose-700 flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-rose-600"></i> Şirkətin Real Ödənişləri (Xərc)
+                        </h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Real Logistika / Nəqliyyat Xərci:</span>
+                                <span id="rpt-real-ship" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Real Sığorta Xərcləri:</span>
+                                <span id="rpt-real-ins" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Real Poti-Bakı Terminal Xərcləri:</span>
+                                <span id="rpt-real-poti" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-200/60">
+                                <span class="text-slate-600">Əlavə / Operativ Xərclər:</span>
+                                <span id="rpt-extra-costs" class="font-mono font-bold text-slate-900">$0</span>
+                            </div>
+                            <div class="flex justify-between py-1 font-bold text-rose-700 pt-1">
+                                <span>Cəmi Şirkət Çıxarışı:</span>
+                                <span id="rpt-real-total-sub" class="font-mono">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-200 p-5 rounded-2xl space-y-2">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-indigo-900 flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-indigo-600"></i> Avtomatlaşdırılmış Maliyyə Analizi Və Status
+                    </h4>
+                    <p id="rpt-analysis-text" class="text-xs text-indigo-950 font-medium leading-relaxed">
+                        Analiz hazırlanır...
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3 no-print">
+                <button onclick="closeFinalFinanceReport()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">Bağla</button>
+                <button onclick="window.print()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> Hesabatı Çap Et (Print)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avtomobil Əlavə Et / Düzəliş Et Modalı -->
+    <div id="carModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2" id="modal-title">
+                    <i class="fa-solid fa-car text-red-600"></i> Avtomobil Məlumatları
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="carForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto custom-scrollbar space-y-5">
+                <input type="hidden" id="form-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-red-600 mb-1">👤 Müştərinin (Sahibinin) Adı Soyadı *</label>
+                        <input type="text" id="form-owner" required placeholder="Məs: Əli Məmmədov" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-bold focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Avtomobil Modeli *</label>
+                        <input type="text" id="form-model" required placeholder="Məs: Toyota Camry 2021" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">VIN Kod (Kuzov No)</label>
+                        <input type="text" id="form-vin" placeholder="1FA6P8CF5..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Yerləşdiyi Yer (Şəhər / Ştat)</label>
+                        <input type="text" id="form-location" placeholder="Məs: Texas, Houston" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Çıxış Portu</label>
+                        <input type="text" id="form-shipping-port" placeholder="Məs: Savannah" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Konteyner Nömrəsi</label>
+                        <input type="text" id="form-container" placeholder="MRKU1234567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:border-red-500">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">🚢 İzləmə (Tracking) Şirkəti</label>
+                        <div class="flex items-center gap-2">
+                            <select id="form-tracking-company" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500">
+                                <option value="">Şirkət seçilməyib</option>
+                            </select>
+                            <button type="button" onclick="openTrackingCompaniesModal()" title="Gəmi şirkətlərini idarə et" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm transition shrink-0">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Bu şirkət kartda "İzlə" düyməsini basanda avtomatik olaraq konteyner nömrəsini kopyalayıb şirkətin izləmə saytını açacaq.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Logistika Statusu</label>
+                        <select id="form-status" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-red-500">
+                            <option value="Auksionda">Auksionda (Uduş)</option>
+                            <option value="Anbara gedir">Anbara gedir (Pikap)</option>
+                            <option value="Anbarda">Anbarda / Portda</option>
+                            <option value="Gəmidə">Gəmidə (Yoldadır)</option>
+                            <option value="Potidədir">Potidədir</option>
+                            <option value="Bakıdadır">Bakıdadır</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-amber-50/60 p-4 rounded-2xl border border-amber-200/80">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="form-etibarname" class="w-5 h-5 text-amber-600 border-slate-300 rounded focus:ring-amber-500 cursor-pointer">
+                        <label for="form-etibarname" class="text-xs font-bold text-slate-800 cursor-pointer">
+                            📜 Etibarnamə Verilib / Gürcüstana Göndərilib
+                            <span class="block text-[10px] text-slate-500 font-normal">Poti-dən Bakıya daşıyan sürücü üçün etibarnamə hazırdır</span>
+                        </label>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="form-shipping-paid" class="w-5 h-5 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer">
+                        <label for="form-shipping-paid" class="text-xs font-bold text-slate-800 cursor-pointer">
+                            💵 Yol Pulu (Nəqliyyat) Ödənilib
+                            <span class="block text-[10px] text-slate-500 font-normal">Müştəri Poti yol pulunu ödəyib</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Şəkil URL (İnternet Linki)</label>
+                        <input type="text" id="form-image-url" placeholder="https://..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-red-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Və ya Şəkil Seç</label>
+                        <input type="file" id="form-image-file" accept="image/*" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100">
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Uduş Tarixi *</label>
+                        <div class="flex items-stretch gap-1">
+                            <button type="button" onclick="adjustDateField('form-udus', -1)" title="Bir gün azalt" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">−</button>
+                            <input type="text" id="form-udus" required placeholder="GG.AA.İİİİ" maxlength="10" inputmode="numeric" oninput="autoFormatDateInput(this)" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 font-mono text-center focus:outline-none focus:border-red-500">
+                            <button type="button" onclick="adjustDateField('form-udus', 1)" title="Bir gün artır" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">+</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Anbara Giriş Tarixi</label>
+                        <div class="flex items-stretch gap-1">
+                            <button type="button" onclick="adjustDateField('form-anbar', -1)" title="Bir gün azalt" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">−</button>
+                            <input type="text" id="form-anbar" placeholder="GG.AA.İİİİ" maxlength="10" inputmode="numeric" oninput="autoFormatDateInput(this)" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 font-mono text-center focus:outline-none focus:border-red-500">
+                            <button type="button" onclick="adjustDateField('form-anbar', 1)" title="Bir gün artır" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">+</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Poti Gəliş Tarixi 🇬🇪</label>
+                        <div class="flex items-stretch gap-1">
+                            <button type="button" onclick="adjustDateField('form-poti', -1)" title="Bir gün azalt" class="px-2.5 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-black shrink-0 transition">−</button>
+                            <input type="text" id="form-poti" placeholder="GG.AA.İİİİ" maxlength="10" inputmode="numeric" oninput="autoFormatDateInput(this)" class="w-full min-w-0 bg-amber-50/70 border border-amber-300 rounded-xl px-2 py-2 text-xs text-slate-900 font-mono text-center focus:outline-none focus:border-amber-500 font-bold">
+                            <button type="button" onclick="adjustDateField('form-poti', 1)" title="Bir gün artır" class="px-2.5 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-lg text-xs font-black shrink-0 transition">+</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Gəmi gecikmə/tezləşmə etsə, − / + düymələri ilə tarixi tez dəyişin.</p>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bakı Çatdırılma Tarixi 🇦🇿</label>
+                        <div class="flex items-stretch gap-1">
+                            <button type="button" onclick="adjustDateField('form-baki', -1)" title="Bir gün azalt" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">−</button>
+                            <input type="text" id="form-baki" placeholder="GG.AA.İİİİ" maxlength="10" inputmode="numeric" oninput="autoFormatDateInput(this)" class="w-full min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs text-slate-900 font-mono text-center focus:outline-none focus:border-red-500">
+                            <button type="button" onclick="adjustDateField('form-baki', 1)" title="Bir gün artır" class="px-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-black shrink-0 transition">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Maliyyə Formu -->
+                <div id="modal-financial-section" class="hidden border-2 border-amber-500/30 bg-amber-500/5 p-4 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+                        <span class="text-xs font-black uppercase tracking-wider text-amber-700 flex items-center gap-2">
+                            <i class="fa-solid fa-lock text-amber-600"></i> Gizli Maliyyə Hökmləri (Dollar $)
+                        </span>
+                        <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">PIN İlə Qorunur</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Auksion Qiyməti ($)</label>
+                            <input type="number" id="form-car-cost" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Real Nəqliyyat ($)</label>
+                            <input type="number" id="form-real-shipping" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Deyilən Nəqliyyat ($)</label>
+                            <input type="number" id="form-client-shipping" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Real Sığorta ($)</label>
+                            <input type="number" id="form-real-insurance" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Deyilən Sığorta ($)</label>
+                            <input type="number" id="form-client-insurance" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Real Poti-Bakı ($)</label>
+                            <input type="number" id="form-real-poti-baku" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Deyilən Poti-Bakı ($)</label>
+                            <input type="number" id="form-client-poti-baku" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-emerald-700 mb-1">Xidmət Haqqı ($)</label>
+                            <input type="number" id="form-service-fee" placeholder="0" class="w-full bg-emerald-50/50 border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-emerald-900 focus:outline-none focus:border-emerald-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-rose-700 mb-1">Əlavə Xərclər ($)</label>
+                            <input type="number" id="form-extra-cost" placeholder="0" class="w-full bg-rose-50/50 border border-rose-200 rounded-xl px-3 py-2 text-xs font-bold text-rose-900 focus:outline-none focus:border-rose-500">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Maşının Auksion Linki</label>
+                            <input type="text" id="form-link" placeholder="https://copart.com/..." class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sənəd Birlaşdirmə Bölməsi -->
+                <div id="modal-documents-section" class="hidden border border-slate-200 p-4 rounded-2xl space-y-3">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">📎 Xüsusi Sənədlər Və Müqavilələr</span>
+                    <div class="flex gap-2">
+                        <select id="doc-type-select" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-2 font-bold text-slate-800">
+                            <option value="Müqavilə">Müqavilə</option>
+                            <option value="Bəyannamə">Bəyannamə</option>
+                            <option value="Ödəniş Qəbzi">Ödəniş Qəbzi</option>
+                            <option value="Etibarnamə">Etibarnamə</option>
+                            <option value="Sığorta">Sığorta</option>
+                            <option value="Digər">Digər</option>
+                        </select>
+                        <input type="file" id="doc-file-input" class="hidden">
+                        <button type="button" onclick="document.getElementById('doc-file-input').click()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-paperclip"></i> Sənəd Seç
+                        </button>
+                    </div>
+                    <div id="attached-docs-list" class="space-y-1.5 pt-1"></div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Ləğv Et</button>
+                    <button type="submit" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-500/20 transition">Yadda Saxla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Gəmi (İzləmə) Şirkətləri Modalı -->
+    <div id="trackingCompaniesModal" class="fixed inset-0 z-[60] hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-ship text-indigo-600"></i> Gəmi (İzləmə) Şirkətləri
+                </h3>
+                <button onclick="closeTrackingCompaniesModal()" class="text-slate-400 hover:text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-5">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                    <p class="text-xs font-bold text-slate-700">➕ Yeni Şirkət Əlavə Et</p>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Şirkətin Adı</label>
+                        <input type="text" id="new-company-name" placeholder="Məs: MSC" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">İzləmə Saytının Linki (baza)</label>
+                        <input type="text" id="new-company-url" placeholder="https://www.msc.com/en/track-a-shipment?trackingNumber={konteyner}" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:border-indigo-500">
+                        <p class="text-[10px] text-slate-400 mt-1">💡 Əgər linkin içində <code class="bg-slate-100 px-1 rounded">{konteyner}</code> yazsanız, "İzlə" düyməsini basanda konteyner nömrəsi avtomatik o yerə yazılıb sayt birbaşa axtarış nəticəsini açacaq. Yazmasanız, sadəcə sayt açılacaq və konteyner nömrəsi kopyalanacaq ki, özünüz yapışdırasınız (Ctrl+V).</p>
+                    </div>
+
+                    <div class="border-t border-slate-200 pt-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="new-company-base64" onchange="document.getElementById('new-company-base64-fields').classList.toggle('hidden', !this.checked)" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer">
+                            <span class="text-[11px] font-bold text-slate-700">🔐 Bu sayt parametrləri Base64 ilə kodlaşdırır (məs: MSC)</span>
+                        </label>
+                        <div id="new-company-base64-fields" class="hidden mt-2 space-y-2">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Parametr Şablonu</label>
+                                <input type="text" id="new-company-params-template" placeholder="trackingNumber={konteyner}&trackingMode=0" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 font-mono focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <p class="text-[10px] text-slate-400">Bu halda yuxarıdakı baza link sonuna avtomatik <code class="bg-slate-100 px-1 rounded">?params=BASE64KOD</code> əlavə olunur. Baza linki <code class="bg-slate-100 px-1 rounded">?</code> işarəsi olmadan yazın (məs: https://www.msc.com/en/track-a-shipment).</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addTrackingCompany()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition">Şirkəti Əlavə Et</button>
+                </div>
+
+                <div class="space-y-2">
+                    <p class="text-xs font-bold text-slate-700">Mövcud Şirkətlər</p>
+                    <div id="tracking-companies-list" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tək Avtomobil Maliyyə Modalı -->
+    <div id="singleCarFinanceModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 text-white w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-amber-400" id="single-car-title">Avtomobil Maliyyə Analizi</h3>
+                    <p class="text-xs text-slate-400" id="single-car-owner">Müştəri:</p>
+                </div>
+                <button onclick="closeSingleCarFinanceModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs" id="single-car-details"></div>
+        </div>
+    </div>
+
+    <!-- PIN Giriş Modalı -->
+    <div id="pinModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 text-white w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-white">ADMİN PANEL</h3>
+                <p class="text-xs text-slate-400 mt-1">Davam etmək üçün 4 rəqəmli PIN kodu daxil edin</p>
+            </div>
+            
+            <input type="password" id="pin-input" maxlength="4" oninput="handlePinInput(this.value)" placeholder="• • • •" class="w-full bg-slate-800 border border-slate-700 text-center text-2xl font-mono tracking-widest text-amber-400 py-3 rounded-xl focus:outline-none focus:border-amber-500 transition duration-200">
+            
+            <div id="pin-error-msg" class="hidden bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs p-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Yanlış PIN kod! Yenidən cəhd edin.</span>
+            </div>
+
+            <div class="flex space-x-2 pt-2">
+                <button onclick="closePinModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">Ləğv Et</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Silinmə Təsdiq Modalı -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 text-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center space-y-4">
+            <div class="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-2xl mx-auto border border-rose-200">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Avtomobili Sil</h3>
+                <p class="text-xs text-slate-500 mt-1">Bu avtomobil məlumatlarını silməyə əminsiniz?</p>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">Ləğv Et</button>
+                <button id="btn-confirm-delete" onclick="confirmDeleteCar()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition">Bəli, Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javscript Məntiq Bölməsi -->
+    <script>
+        /* ==== JSONBin.io ONLAYN DATA KONFİQURASİYASI ==== */
+        const MASTER_KEY = '$2a$10$LXZpVCstEt6foZS7Vgbd3OiCmGLCE04./RFPVvWiXH0LevN4NA2gu';
+        const BIN_ID = '6aa60a05ac6210605ac68617'; // <-- Öz BIN_ID-nizi bura yazın
+        const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3/b/';
+
+        let cars = [];
+        let isCloudSyncing = false;
+        let isAdminLoggedIn = false;
+        const SECRET_PIN = "0012";
+        let pendingCarIdToView = null;
+        let pendingDeleteCarId = null;
+        let tempAttachedDocs = [];
+        let currentViewMode = 'card';
+        let analyticsSearchMode = 'port';
+        let trackingCompanies = [];
+
+        /* GƏMİ (İZLƏMƏ) ŞİRKƏTLƏRİ İDARƏETMƏSİ */
+        function loadTrackingCompanies() {
+            const saved = localStorage.getItem('carzone_tracking_companies');
+            if (saved) {
+                try {
+                    trackingCompanies = JSON.parse(saved);
+                    if (!Array.isArray(trackingCompanies)) trackingCompanies = [];
+                } catch (e) { trackingCompanies = []; }
+            }
+            // İlk dəfə açılanda ən çox istifadə olunan iki şirkəti default olaraq əlavə edirik.
+            // MSC konteyner nömrəsini "trackingNumber=X&trackingMode=0" şəklində Base64 kodlaşdırıb
+            // ?params= ilə göndərir, ona görə birbaşa avtomatik axtarış üçün konfiqurasiya edilib.
+            if (trackingCompanies.length === 0) {
+                trackingCompanies = [
+                    { id: 1, name: 'MSC', url: 'https://www.msc.com/en/track-a-shipment', base64Params: true, paramsTemplate: 'trackingNumber={konteyner}&trackingMode=0' },
+                    { id: 2, name: 'Maersk', url: 'https://www.maersk.com/tracking/' }
+                ];
+                saveTrackingCompanies();
+            } else {
+                // Əvvəllər əlavə edilmiş, amma Base64 konfiqurasiyası olmayan "MSC" qeydini
+                // avtomatik yeniləyirik ki, avtomatik axtarış işləsin.
+                let migrated = false;
+                trackingCompanies.forEach(co => {
+                    if (co.name && co.name.trim().toUpperCase() === 'MSC' && !co.base64Params && co.url && co.url.includes('msc.com')) {
+                        co.base64Params = true;
+                        co.paramsTemplate = 'trackingNumber={konteyner}&trackingMode=0';
+                        co.url = 'https://www.msc.com/en/track-a-shipment';
+                        migrated = true;
+                    }
+                });
+                if (migrated) saveTrackingCompanies();
+            }
+        }
+
+        function saveTrackingCompanies() {
+            localStorage.setItem('carzone_tracking_companies', JSON.stringify(trackingCompanies));
+        }
+
+        function renderTrackingCompanySelect() {
+            const select = document.getElementById('form-tracking-company');
+            if (!select) return;
+            const currentValue = select.value;
+            select.innerHTML = `<option value="">Şirkət seçilməyib</option>` +
+                trackingCompanies.map(co => `<option value="${co.id}">${co.name}</option>`).join('');
+            select.value = currentValue;
+        }
+
+        function openTrackingCompaniesModal() {
+            renderTrackingCompaniesList();
+            document.getElementById('trackingCompaniesModal').classList.remove('hidden');
+        }
+
+        function closeTrackingCompaniesModal() {
+            document.getElementById('trackingCompaniesModal').classList.add('hidden');
+        }
+
+        function renderTrackingCompaniesList() {
+            const listEl = document.getElementById('tracking-companies-list');
+            if (!listEl) return;
+            if (trackingCompanies.length === 0) {
+                listEl.innerHTML = `<span class="text-[11px] text-slate-400">Heç bir şirkət əlavə edilməyib</span>`;
+                return;
+            }
+            listEl.innerHTML = trackingCompanies.map(co => `
+                <div class="flex items-center justify-between bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-xs">
+                    <div class="truncate pr-2">
+                        <span class="font-bold text-slate-800">${co.name}</span>
+                        ${co.base64Params ? `<span class="ml-1.5 text-[9px] font-bold bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full align-middle">🔐 BASE64 AVTO-DOLDURMA</span>` : (co.url && co.url.includes('{konteyner}') ? `<span class="ml-1.5 text-[9px] font-bold bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full align-middle">AVTO-DOLDURMA</span>` : '')}
+                        <span class="block text-[10px] text-slate-500 truncate">${co.url}</span>
+                    </div>
+                    <button type="button" onclick="deleteTrackingCompany(${co.id})" class="text-rose-500 hover:text-rose-700 shrink-0 ml-2"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function addTrackingCompany() {
+            const nameInput = document.getElementById('new-company-name');
+            const urlInput = document.getElementById('new-company-url');
+            const base64Checkbox = document.getElementById('new-company-base64');
+            const paramsTemplateInput = document.getElementById('new-company-params-template');
+            const name = nameInput.value.trim();
+            let url = urlInput.value.trim();
+            const useBase64 = base64Checkbox.checked;
+            const paramsTemplate = paramsTemplateInput.value.trim();
+
+            if (!name || !url) {
+                showToast("Şirkətin adını və linkini daxil edin!");
+                return;
+            }
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
+            if (useBase64 && !paramsTemplate) {
+                showToast("Base64 rejimi üçün parametr şablonunu daxil edin!");
+                return;
+            }
+
+            const newCompany = { id: Date.now(), name, url };
+            if (useBase64) {
+                newCompany.base64Params = true;
+                newCompany.paramsTemplate = paramsTemplate;
+            }
+            trackingCompanies.push(newCompany);
+            saveTrackingCompanies();
+            nameInput.value = '';
+            urlInput.value = '';
+            base64Checkbox.checked = false;
+            paramsTemplateInput.value = '';
+            document.getElementById('new-company-base64-fields').classList.add('hidden');
+            renderTrackingCompaniesList();
+            renderTrackingCompanySelect();
+            showToast(`"${name}" izləmə şirkətlər siyahısına əlavə olundu!`);
+        }
+
+        function deleteTrackingCompany(id) {
+            trackingCompanies = trackingCompanies.filter(co => co.id !== id);
+            saveTrackingCompanies();
+            renderTrackingCompaniesList();
+            renderTrackingCompanySelect();
+            showToast("Şirkət siyahıdan silindi.");
+        }
+
+        function copyTextToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            // Fallback: köhnə brauzerlər və ya https olmayan mühit üçün
+            return new Promise((resolve, reject) => {
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        }
+
+        async function copyContainerAndTrack(carId, event) {
+            if (event && event.preventDefault) event.preventDefault();
+
+            const car = cars.find(c => c.id === carId);
+            if (!car) return;
+
+            if (!car.container) {
+                showToast("⚠️ Bu avtomobilin konteyner nömrəsi qeyd edilməyib!");
+                return;
+            }
+
+            const company = trackingCompanies.find(co => co.id === car.trackingCompanyId);
+            if (!company) {
+                showToast("⚠️ Əvvəlcə avtomobilin məlumatlarına daxil olub izləmə şirkəti seçin!");
+                return;
+            }
+
+            // MSC kimi saytlar üçün: parametrlər əvvəlcə "trackingNumber=X&trackingMode=0" şəklində
+            // struktura salınır, sonra Base64 ilə kodlaşdırılıb URL-safe formaya çevrilir və
+            // "?params=" olaraq linkə əlavə olunur - sayt açılan kimi axtarış öz-özünə işə düşür.
+            if (company.base64Params && company.paramsTemplate) {
+                const resolvedParams = company.paramsTemplate.split('{konteyner}').join(car.container);
+                const base64 = btoa(unescape(encodeURIComponent(resolvedParams)));
+                const urlSafeBase64 = encodeURIComponent(base64);
+                const separator = company.url.includes('?') ? '&' : '?';
+                const finalUrl = `${company.url}${separator}params=${urlSafeBase64}`;
+                copyTextToClipboard(car.container).catch(() => {});
+                showToast(`🔎 "${car.container}" üçün ${company.name} saytında birbaşa axtarış açılır...`);
+                window.open(finalUrl, '_blank');
+                return;
+            }
+
+            // Şirkətin linkində {konteyner} yer tutucusu varsa, konteyner nömrəsini birbaşa
+            // linkə yerləşdiririk - bu halda sayt açılan kimi axtarış öz-özünə edilir və
+            // istifadəçi heç nə kopyalamağa/yapışdırmağa ehtiyac duymur.
+            if (company.url && company.url.includes('{konteyner}')) {
+                const finalUrl = company.url.split('{konteyner}').join(encodeURIComponent(car.container));
+                // Ehtiyat üçün konteyner nömrəsini yenə də mübadilə buferinə yazırıq
+                copyTextToClipboard(car.container).catch(() => {});
+                showToast(`🔎 "${car.container}" üçün ${company.name} saytında birbaşa axtarış açılır...`);
+                window.open(finalUrl, '_blank');
+                return;
+            }
+
+            try {
+                await copyTextToClipboard(car.container);
+                showToast(`📋 "${car.container}" kopyalandı! ${company.name} saytı açılır, indi Ctrl+V (və ya sağ klik → Yapışdır) ilə yapışdırın.`);
+            } catch (err) {
+                showToast("⚠️ Konteyner nömrəsi kopyalanmadı, linki əl ilə açırıq.");
+            }
+
+            window.open(company.url, '_blank');
+        }
+
+        // Köhnə qeydlərdə şəkil sahəsi "image" adlanırdı, hazırkı formada isə "imageUrl"
+        // istifadə olunur. Hər dəfə maşın siyahısı yükləndikdə bu funksiya hər iki adı
+        // dəstəkləyərək şəkillərin görünməsini təmin edir. Eyni zamanda köhnə İİİİ-AA-GG
+        // formatında saxlanmış tarixləri də GG.AA.İİİİ formatına çevirir.
+        function normalizeCars(list) {
+            if (!Array.isArray(list)) return [];
+            return list.map(c => ({
+                ...c,
+                imageUrl: c.imageUrl || c.image || '',
+                udus: formatDateDMY(c.udus) || c.udus || '',
+                anbar: formatDateDMY(c.anbar) || c.anbar || '',
+                poti: formatDateDMY(c.poti) || c.poti || '',
+                baki: formatDateDMY(c.baki) || c.baki || ''
+            }));
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            loadTrackingCompanies();
+            renderTrackingCompanySelect();
+
+            // İlk olaraq localStorage-dəki son bilinən datanı göstəririk ki, şəbəkə
+            // gecikəndə də ekran boş qalmasın, sonra buludu sorğulayıb üzərinə yazırıq.
+            const savedData = localStorage.getItem('carzone_db');
+            if (savedData) {
+                try {
+                    cars = normalizeCars(JSON.parse(savedData));
+                } catch (e) { cars = []; }
+            }
+
+            await loadDataFromCloud();
+
+            // Sənəd seçmə mexanizmini dinləyiciyə qoşaq
+            const docInput = document.getElementById('doc-file-input');
+            if (docInput) {
+                docInput.addEventListener('change', function(e) {
+                    if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        const docType = document.getElementById('doc-type-select').value;
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            tempAttachedDocs.push({
+                                type: docType,
+                                fileName: file.name,
+                                data: evt.target.result
+                            });
+                            renderAttachedDocsList();
+                            showToast("Sənəd birbaşa əlavə olundu!");
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
+            updateAdminUI();
+            renderApp();
+        });
+
+        /* ==== JSONBin.io CRUD FUNKSİYALARI ==== */
+
+        // HTTP status kodunu insan üçün anlaşılan mesaja çevirir.
+        function jsonbinErrorMessage(status) {
+            if (status === 401) return "🔒 401 Xəta: Master Key yanlışdır və ya səlahiyyət yoxdur.";
+            if (status === 403) return "🚫 403 Xəta: Bu BIN-ə giriş qadağandır (icazə problemi).";
+            if (status === 404) return "❓ 404 Xəta: Bu BIN_ID tapılmadı, ID-ni yoxlayın.";
+            if (status >= 500) return `🛠️ ${status} Xəta: JSONBin serverində problem var, bir az sonra yenidən cəhd edin.`;
+            return `⚠️ Xəta: JSONBin sorğusu rədd edildi (kod: ${status}).`;
+        }
+
+        // Səhifə açılanda və ya "Məlumatları Yenilə" düyməsi ilə buluddakı sonuncu datanı çəkir.
+        async function loadDataFromCloud() {
+            if (!BIN_ID) {
+                showToast("Diqqət: BIN_ID təyin edilməyib, kodun yuxarısındakı konfiqurasiyaya öz BIN_ID-nizi yazın.", 'error');
+                return false;
+            }
+            isCloudSyncing = true;
+            try {
+                const response = await fetch(`${JSONBIN_BASE_URL}${BIN_ID}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': MASTER_KEY
+                    }
+                });
+
+                if (!response.ok) {
+                    showToast(jsonbinErrorMessage(response.status), 'error');
+                    return false;
+                }
+
+                const result = await response.json();
+                // JSONBin v3 formatında əsl data "record" sahəsində qayıdır.
+                const remoteCars = result && result.record ? result.record : result;
+
+                if (Array.isArray(remoteCars)) {
+                    cars = normalizeCars(remoteCars);
+                    localStorage.setItem('carzone_db', JSON.stringify(cars));
+                    renderApp();
+                    return true;
+                } else {
+                    showToast("⚠️ Cloud-dan gələn data düzgün formatda deyil (massiv gözlənilirdi).", 'error');
+                    return false;
+                }
+            } catch (err) {
+                // Şəbəkə xətası (internet yoxdur, CORS, DNS və s.)
+                showToast(`⚠️ Şəbəkə xətası: Cloud-a qoşulmaq mümkün olmadı (${err.message}).`, 'error');
+                return false;
+            } finally {
+                isCloudSyncing = false;
+            }
+        }
+
+        // Cari "cars" massivini (və ya ötürülən datanı) JSONBin-ə yazır.
+        async function saveDataToCloud(newData) {
+            if (!BIN_ID) {
+                showToast("Diqqət: BIN_ID təyin edilməyib, buluda yazıla bilmədi.", 'error');
+                return false;
+            }
+            isCloudSyncing = true;
+            try {
+                const response = await fetch(`${JSONBIN_BASE_URL}${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': MASTER_KEY
+                    },
+                    body: JSON.stringify(newData)
+                });
+
+                if (!response.ok) {
+                    showToast(jsonbinErrorMessage(response.status), 'error');
+                    return false;
+                }
+
+                return true;
+            } catch (err) {
+                // Şəbəkə xətası (internet yoxdur, CORS, DNS və s.)
+                showToast(`⚠️ Şəbəkə xətası: Dəyişikliklər cloud-a yazıla bilmədi (${err.message}).`, 'error');
+                return false;
+            } finally {
+                isCloudSyncing = false;
+            }
+        }
+
+        // Manuel "Məlumatları Yenilə 🔄" düyməsi üçün - vizual yüklənmə göstəricisi ilə.
+        async function manualRefreshData() {
+            const btn = document.getElementById('btn-cloud-refresh');
+            const icon = document.getElementById('btn-cloud-refresh-icon');
+            const text = document.getElementById('btn-cloud-refresh-text');
+            if (!btn || isCloudSyncing) return;
+
+            const originalText = text.innerText;
+            btn.disabled = true;
+            btn.classList.add('opacity-60', 'cursor-not-allowed');
+            text.innerText = 'Yüklənir...';
+            icon.classList.add('fa-spin');
+
+            const success = await loadDataFromCloud();
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            text.innerText = originalText;
+            icon.classList.remove('fa-spin');
+
+            if (success) {
+                showToast("✅ Məlumatlar cloud-dan uğurla yeniləndi!", 'success');
+            }
+        }
+
+        /* YADDAŞ İLƏ İŞLƏMƏ: əvvəlcə lokal keşə, sonra JSONBin buluduna yazır.
+           BÜTÜN status dəyişən, əlavə edən və ya silən funksiyalar (processSaveCar,
+           confirmDeleteCar, toggleEtibarnameStatus, toggleShippingPaidStatus və s.)
+           bu funksiyanı çağıraraq dəyişikliyi dərhal cloud-a ötürür. */
+        async function saveData(successMsg = "✅ Məlumatlar cloud-a uğurla yazıldı!") {
+            saveToLocalStorageOnly();
+            const success = await saveDataToCloud(cars);
+            if (success && successMsg) {
+                showToast(successMsg, 'success');
+            }
+            return success;
+        }
+
+        function saveToLocalStorageOnly() {
+            localStorage.setItem('carzone_db', JSON.stringify(cars));
+            renderApp();
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cars, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `carzone_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Ehtiyat kopya (JSON) yükləndi!");
+        }
+
+        // type: 'success' (yaşıl), 'error' (qırmızı), 'info' (neytral, defolt)
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const iconWrap = document.getElementById('toast-icon-wrap');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-message').innerText = msg;
+
+            iconWrap.classList.remove('bg-emerald-500', 'bg-rose-500', 'bg-slate-500');
+            icon.classList.remove('fa-check', 'fa-triangle-exclamation', 'fa-circle-info');
+
+            if (type === 'success') {
+                iconWrap.classList.add('bg-emerald-500');
+                icon.classList.add('fa-check');
+            } else if (type === 'error') {
+                iconWrap.classList.add('bg-rose-500');
+                icon.classList.add('fa-triangle-exclamation');
+            } else {
+                iconWrap.classList.add('bg-slate-500');
+                icon.classList.add('fa-circle-info');
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, type === 'error' ? 5000 : 3000);
+        }
+
+        function diffDays(d1, d2) {
+            const a = parseAppDate(d1), b = parseAppDate(d2);
+            if (!a || !b) return null;
+            return Math.ceil((b - a) / (1000 * 60 * 60 * 24));
+        }
+
+
+        // Tarix daxil edilmiş sətri (GG.AA.İİİİ və ya köhnə İİİİ-AA-GG formatı) Date obyektinə çevirir.
+        function parseAppDate(str) {
+            if (!str) return null;
+            let m = String(str).match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+            if (m) {
+                const d = parseInt(m[1], 10), mo = parseInt(m[2], 10), y = parseInt(m[3], 10);
+                const dt = new Date(y, mo - 1, d);
+                return isNaN(dt.getTime()) ? null : dt;
+            }
+            m = String(str).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (m) {
+                const y = parseInt(m[1], 10), mo = parseInt(m[2], 10), d = parseInt(m[3], 10);
+                const dt = new Date(y, mo - 1, d);
+                return isNaN(dt.getTime()) ? null : dt;
+            }
+            return null;
+        }
+
+        // Tarixi hər yerdə (yaddaş və ekran) istifadə olunan vahid GG.AA.İİİİ formatına salır.
+        // Köhnə İİİİ-AA-GG formatında saxlanmış məlumatlar da avtomatik bu formata çevrilir.
+        function formatDateDMY(str) {
+            const dt = parseAppDate(str);
+            if (!dt) return '';
+            const dd = String(dt.getDate()).padStart(2, '0');
+            const mm = String(dt.getMonth() + 1).padStart(2, '0');
+            const yyyy = dt.getFullYear();
+            return `${dd}.${mm}.${yyyy}`;
+        }
+
+        // İstifadəçi tarix xanasına rəqəm daxil edərkən avtomatik olaraq nöqtələri əlavə edir (GG.AA.İİİİ)
+        function autoFormatDateInput(el) {
+            let digits = el.value.replace(/\D/g, '').slice(0, 8);
+            let out = digits;
+            if (digits.length > 4) {
+                out = digits.slice(0, 2) + '.' + digits.slice(2, 4) + '.' + digits.slice(4);
+            } else if (digits.length > 2) {
+                out = digits.slice(0, 2) + '.' + digits.slice(2);
+            }
+            el.value = out;
+        }
+
+        // "−" / "+" düymələri ilə tarix xanasındakı tarixi bir gün geri/irəli aparır.
+        // Xana boş və ya səhv formatdadırsa, bugünkü tarixdən başlayır.
+        function adjustDateField(fieldId, delta) {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            let dt = parseAppDate(el.value.trim());
+            if (!dt) dt = new Date();
+            dt.setDate(dt.getDate() + delta);
+            const dd = String(dt.getDate()).padStart(2, '0');
+            const mm = String(dt.getMonth() + 1).padStart(2, '0');
+            const yyyy = dt.getFullYear();
+            el.value = `${dd}.${mm}.${yyyy}`;
+        }
+
+        function getDaysToPoti(potiDateStr) {
+            const potiDate = parseAppDate(potiDateStr);
+            if (!potiDate) return null;
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            potiDate.setHours(0,0,0,0);
+            const diffTime = potiDate - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function calculateCarNetProfit(c) {
+            const clientTotal = (parseFloat(c.clientShipping) || 0) + (parseFloat(c.clientInsurance) || 0) + (parseFloat(c.clientPotiBaku) || 0);
+            const realTotal = (parseFloat(c.realShipping) || 0) + (parseFloat(c.realInsurance) || 0) + (parseFloat(c.realPotiBaku) || 0) + (parseFloat(c.extraCost) || 0);
+            const serviceFee = parseFloat(c.serviceFee) || 0;
+            return (clientTotal - realTotal) + serviceFee;
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('btn-view-card').className = mode === 'card' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-white text-red-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+            document.getElementById('btn-view-table').className = mode === 'table' ? "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-white text-red-600 shadow-sm" : "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+            renderCarsContainer();
+        }
+
+        function getFilteredCars() {
+            const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+            const yearFilter = document.getElementById('filter-year').value;
+            const monthFilter = document.getElementById('filter-month').value;
+            const locFilter = document.getElementById('filter-location').value;
+            const portFilter = document.getElementById('filter-port').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            let filtered = cars.filter(c => {
+                const matchesSearch = (c.owner && c.owner.toLowerCase().includes(searchQuery)) ||
+                                     (c.model && c.model.toLowerCase().includes(searchQuery)) ||
+                                     (c.container && c.container.toLowerCase().includes(searchQuery)) ||
+                                     (c.vin && c.vin.toLowerCase().includes(searchQuery)) ||
+                                     (c.location && c.location.toLowerCase().includes(searchQuery)) ||
+                                     (c.shippingPort && c.shippingPort.toLowerCase().includes(searchQuery));
+
+                let matchesYear = true;
+                if (yearFilter !== 'ALL') {
+                    matchesYear = c.udus ? (c.udus.split('.')[2] === yearFilter) : false;
+                }
+
+                let matchesMonth = true;
+                if (monthFilter !== 'ALL') {
+                    matchesMonth = c.udus ? (c.udus.split('.')[1] === monthFilter) : false;
+                }
+
+                const matchesLoc = locFilter === 'ALL' || c.location === locFilter;
+                const matchesPort = portFilter === 'ALL' || c.shippingPort === portFilter;
+                const matchesStatus = statusFilter === 'ALL' || c.status === statusFilter;
+
+                return matchesSearch && matchesYear && matchesMonth && matchesLoc && matchesPort && matchesStatus;
+            });
+
+            filtered.sort((a, b) => {
+                const dateA = parseAppDate(a.udus) || new Date(0);
+                const dateB = parseAppDate(b.udus) || new Date(0);
+                return dateB - dateA;
+            });
+
+            return filtered;
+        }
+
+        function renderApp() {
+            populateFilters();
+            renderKPI();
+            renderCarsContainer();
+            if (isAdminLoggedIn) {
+                renderFinancialAnalytics();
+            }
+            renderLogisticsAnalytics();
+        }
+
+        function populateFilters() {
+            const yearSelect = document.getElementById('filter-year');
+            const locSelect = document.getElementById('filter-location');
+            const portSelect = document.getElementById('filter-port');
+
+            const currYear = yearSelect.value;
+            const currLoc = locSelect.value;
+            const currPort = portSelect.value;
+
+            const years = new Set();
+            const locations = new Set();
+            const ports = new Set();
+
+            cars.forEach(c => {
+                if (c.udus) years.add(c.udus.split('.')[2]);
+                if (c.location) locations.add(c.location);
+                if (c.shippingPort) ports.add(c.shippingPort);
+            });
+
+            yearSelect.innerHTML = `<option value="ALL">📅 Bütün İllər</option>` + Array.from(years).sort().reverse().map(y => `<option value="${y}">${y}</option>`).join('');
+            locSelect.innerHTML = `<option value="ALL">📍 Bütün Məkanlar</option>` + Array.from(locations).sort().map(l => `<option value="${l}">${l}</option>`).join('');
+            portSelect.innerHTML = `<option value="ALL">⚓ Bütün Çıxış Portları</option>` + Array.from(ports).sort().map(p => `<option value="${p}">${p}</option>`).join('');
+
+            yearSelect.value = currYear;
+            locSelect.value = currLoc;
+            portSelect.value = currPort;
+        }
+
+        function renderKPI() {
+            const filtered = getFilteredCars();
+            document.getElementById('kpi-total').innerText = filtered.length;
+            document.getElementById('kpi-auction').innerText = filtered.filter(c => c.status === 'Auksionda' || c.status === 'Anbara gedir').length;
+            document.getElementById('kpi-warehouse').innerText = filtered.filter(c => c.status === 'Anbarda').length;
+            document.getElementById('kpi-ship').innerText = filtered.filter(c => c.status === 'Gəmidə').length;
+            document.getElementById('kpi-poti').innerText = filtered.filter(c => c.status === 'Potidədir').length;
+            document.getElementById('kpi-baku').innerText = filtered.filter(c => c.status === 'Bakıdadır').length;
+        }
+
+        function renderFinancialAnalytics() {
+            const filteredCars = getFilteredCars();
+            let totalProfit = 0;
+            const monthlyProfits = {};
+
+            filteredCars.forEach(c => {
+                const profit = calculateCarNetProfit(c);
+                totalProfit += profit;
+                if (c.udus) {
+                    const dt = parseAppDate(c.udus);
+                    if (dt) {
+                        const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+                        monthlyProfits[key] = (monthlyProfits[key] || 0) + profit;
+                    }
+                }
+            });
+
+            document.getElementById('total-net-profit').innerText = `$${totalProfit.toLocaleString()}`;
+
+            const monthlyContainer = document.getElementById('monthly-profit-cards');
+            const sortedMonths = Object.keys(monthlyProfits).sort().reverse();
+
+            if (sortedMonths.length === 0) {
+                monthlyContainer.innerHTML = `<div class="col-span-full text-slate-500 text-xs text-center py-2">Uduş tarixi olan məlumat tapılmadı</div>`;
+                return;
+            }
+
+            monthlyContainer.innerHTML = sortedMonths.map(m => {
+                const [y, mon] = m.split('-');
+                const monthNames = ["Yan", "Fev", "Mar", "Apr", "May", "İyun", "İyul", "Avq", "Sen", "Okt", "Noy", "Dek"];
+                const monthName = monthNames[parseInt(mon) - 1] || mon;
+                const val = monthlyProfits[m];
+                return `
+                    <div class="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">${monthName} ${y}</span>
+                        <span class="text-base font-black ${val >= 0 ? 'text-emerald-400' : 'text-rose-400'} block mt-0.5">$${val.toLocaleString()}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleLogisticsAnalytics(show) {
+            const section = document.getElementById('logistics-analytics-section');
+            const backdrop = document.getElementById('analyticsBackdrop');
+            if (show) {
+                backdrop.classList.remove('hidden');
+                setTimeout(() => {
+                    backdrop.classList.remove('opacity-0');
+                    section.classList.remove('translate-x-full');
+                }, 10);
+                renderLogisticsAnalytics();
+            } else {
+                backdrop.classList.add('opacity-0');
+                section.classList.add('translate-x-full');
+                setTimeout(() => {
+                    backdrop.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function setAnalyticsSearchMode(mode) {
+            analyticsSearchMode = mode;
+            const portBtn = document.getElementById('search-mode-port');
+            const locBtn = document.getElementById('search-mode-location');
+            const input = document.getElementById('analytics-search-input');
+
+            if (mode === 'port') {
+                portBtn.className = "flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-indigo-600 text-white transition shadow-sm";
+                locBtn.className = "flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition";
+                input.placeholder = "Port adı axtarın (məs: Poti, Savannah...)";
+            } else {
+                locBtn.className = "flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-indigo-600 text-white transition shadow-sm";
+                portBtn.className = "flex-1 py-2 px-3 text-xs font-bold rounded-xl bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition";
+                input.placeholder = "Lokasiya / Şəhər axtarın (məs: Texas, California...)";
+            }
+            renderLogisticsAnalytics();
+        }
+
+        function renderLogisticsAnalytics() {
+            const query = document.getElementById('analytics-search-input').value.toLowerCase().trim();
+            const validCars = cars.filter(c => c.udus && c.poti && (
+                analyticsSearchMode === 'port' ?
+                (c.shippingPort && c.shippingPort.toLowerCase().includes(query)) :
+                (c.location && c.location.toLowerCase().includes(query))
+            ));
+
+            let totalDays = 0;
+            validCars.forEach(c => {
+                totalDays += diffDays(c.udus, c.poti) || 0;
+            });
+            const avgDays = validCars.length > 0 ? Math.round(totalDays / validCars.length) : 0;
+
+            document.getElementById('analytics-avg-days').innerText = `${avgDays} gün`;
+            document.getElementById('analytics-total-cars').innerText = `${validCars.length} ədəd`;
+            document.getElementById('analytics-count-badge').innerText = `${validCars.length} tapıldı`;
+
+            const listEl = document.getElementById('analytics-history-list');
+            if (validCars.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">Heç bir uyğun nəqliyyat məlumatı tapılmadı</div>`;
+                return;
+            }
+
+            listEl.innerHTML = validCars.map(c => {
+                const potiDays = diffDays(c.udus, c.poti);
+                let badgeClass = "bg-slate-100 text-slate-700";
+                if (c.status === 'Potidədir') badgeClass = "bg-purple-100 text-purple-700 font-bold";
+                else if (c.status === 'Bakıdadır') badgeClass = "bg-emerald-100 text-emerald-700 font-bold";
+
+                return `
+                    <div class="bg-white border border-slate-200 p-3.5 rounded-2xl space-y-2 hover:border-indigo-300 transition shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-extrabold text-xs text-slate-900">${c.model}</h4>
+                                <p class="text-[11px] text-slate-500 font-medium mt-0.5">
+                                    <i class="fa-solid font-bold ${analyticsSearchMode === 'port' ? 'fa-anchor text-blue-600' : 'fa-location-dot text-amber-600'} mr-1"></i>
+                                    ${analyticsSearchMode === 'port' ? (c.shippingPort || 'Qeyd olunmayıb') : (c.location || 'Qeyd olunmayıb')}
+                                </p>
+                            </div>
+                            <span class="text-[10px] px-2.5 py-1 rounded-full ${badgeClass}">${c.status}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-100 text-slate-600 font-medium">
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Uduş Tarixi:</span>
+                                <span class="font-mono font-bold text-slate-800">${formatDateDMY(c.udus) || '-'}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Poti Çatma / Müddət:</span>
+                                <span class="font-mono font-bold text-indigo-700">${c.poti ? formatDateDMY(c.poti) + ' (' + potiDays + ' gün)' : '⚠️ Təyin edilməyib'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* PIN KOD LOGİKASI VƏ VİZUAL XƏTA */
+        function openPinPrompt() {
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            document.getElementById('pinModal').classList.remove('hidden');
+            document.getElementById('pin-input').focus();
+        }
+
+        function closePinModal() {
+            document.getElementById('pinModal').classList.add('hidden');
+            pendingCarIdToView = null;
+        }
+
+        function handlePinInput(val) {
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            if (val.length === 4) {
+                verifyPinCode();
+            }
+        }
+
+        function verifyPinCode() {
+            const pin = document.getElementById('pin-input').value;
+            const errorEl = document.getElementById('pin-error-msg');
+            const pinInput = document.getElementById('pin-input');
+
+            if (pin === SECRET_PIN) {
+                isAdminLoggedIn = true;
+                closePinModal();
+                errorEl.classList.add('hidden');
+                showToast("🔒 Giriş Uğurludur! Gizli Panellər Aktivləşdi.");
+                updateAdminUI();
+                if (pendingCarIdToView !== null) {
+                    openSingleCarFinance(pendingCarIdToView);
+                    pendingCarIdToView = null;
+                }
+            } else {
+                errorEl.classList.remove('hidden');
+                pinInput.classList.add('border-rose-500');
+                setTimeout(() => {
+                    pinInput.classList.remove('border-rose-500');
+                }, 1500);
+            }
+        }
+
+        function toggleAdminPanel() {
+            if (isAdminLoggedIn) {
+                isAdminLoggedIn = false;
+                showToast("🔒 Panel Kilidləndi!");
+                updateAdminUI();
+            } else {
+                openPinPrompt();
+            }
+        }
+
+        function updateAdminUI() {
+            const adminIcon = document.getElementById('admin-icon');
+            const btnAdminToggle = document.getElementById('btn-admin-toggle');
+            const finAnalytics = document.getElementById('financial-analytics-section');
+            const modalFinSection = document.getElementById('modal-financial-section');
+            const modalDocsSection = document.getElementById('modal-documents-section');
+            const btnFinalFinance = document.getElementById('btn-final-finance');
+
+            if (isAdminLoggedIn) {
+                adminIcon.className = "fa-solid fa-lock-open text-emerald-400";
+                btnAdminToggle.className = "px-3.5 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 text-sm font-bold rounded-xl transition flex items-center justify-center border border-emerald-700 shadow-md";
+                finAnalytics.classList.remove('hidden');
+                modalFinSection.classList.remove('hidden');
+                modalDocsSection.classList.remove('hidden');
+                if (btnFinalFinance) btnFinalFinance.classList.remove('hidden');
+            } else {
+                adminIcon.className = "fa-solid fa-lock text-amber-400";
+                btnAdminToggle.className = "px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-400 text-sm font-bold rounded-xl transition flex items-center justify-center border border-slate-700 shadow-md";
+                finAnalytics.classList.add('hidden');
+                modalFinSection.classList.add('hidden');
+                modalDocsSection.classList.add('hidden');
+                if (btnFinalFinance) btnFinalFinance.classList.add('hidden');
+            }
+            renderApp();
+        }
+
+        /*  POTİ VƏ ETİBARNAMƏ MODALI LOGİKASI */
+        function openPotiTrackingModal() {
+            document.getElementById('potiTrackingModal').classList.remove('hidden');
+            renderPotiTrackingList();
+        }
+
+        function closePotiTrackingModal() {
+            document.getElementById('potiTrackingModal').classList.add('hidden');
+        }
+
+        function renderPotiTrackingList() {
+            const filterMode = document.getElementById('poti-tracking-filter').value;
+            const container = document.getElementById('poti-tracking-list');
+
+            let potiCars = cars.filter(c => c.poti && c.status !== 'Bakıdadır');
+
+            potiCars.sort((a, b) => {
+                const dA = parseAppDate(a.poti) || new Date(0);
+                const dB = parseAppDate(b.poti) || new Date(0);
+                return dA - dB;
+            });
+
+            if (filterMode === 'SOON_20') {
+                potiCars = potiCars.filter(c => {
+                    const days = getDaysToPoti(c.poti);
+                    return days !== null && days <= 20;
+                });
+            } else if (filterMode === 'NO_ETIBARNAME') {
+                potiCars = potiCars.filter(c => !c.etibarname);
+            } else if (filterMode === 'NO_SHIPPING') {
+                potiCars = potiCars.filter(c => !c.shippingPaid);
+            }
+
+            const totalNoDoc = potiCars.filter(c => !c.etibarname).length;
+            document.getElementById('stat-poti-total').innerText = `${potiCars.length} Avtomobil`;
+            document.getElementById('stat-poti-no-doc').innerText = `${totalNoDoc} Etibarnaməsi Yoxdur`;
+
+            if (potiCars.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
+                        <i class="fa-solid fa-check-circle text-emerald-500 text-3xl mb-2 block"></i>
+                        <p class="text-xs font-bold">Bu meyarda xəbərdarlıq ediləcək avtomobil tapılmadı.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = potiCars.map(c => {
+                const daysLeft = getDaysToPoti(c.poti);
+                let daysNotice = "";
+                let noticeBg = "bg-blue-50 text-blue-800 border-blue-200";
+
+                if (daysLeft < 0) {
+                    daysNotice = `⚠️ ${Math.abs(daysLeft)} gün əvvəl Poti-yə çatıb (Portda/Terminaldadaır)`;
+                    noticeBg = "bg-purple-50 text-purple-900 border-purple-200 font-bold";
+                } else if (daysLeft === 0) {
+                    daysNotice = `🚨 BU GÜN Poti-yə çatır!`;
+                    noticeBg = "bg-rose-100 text-rose-900 border-rose-300 font-black animate-pulse";
+                } else if (daysLeft <= 15) {
+                    daysNotice = `⚡ Poti-yə çatmasına cəmi ${daysLeft} gün qalıb!`;
+                    noticeBg = "bg-amber-100 text-amber-900 border-amber-300 font-bold";
+                } else {
+                    daysNotice = `🗓️ Poti-yə çatmasına ${daysLeft} gün var`;
+                }
+
+                return `
+                    <div class="bg-white border-2 ${!c.etibarname ? 'border-amber-300' : 'border-slate-200'} p-4 rounded-2xl space-y-3 shadow-sm">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <h4 class="font-black text-sm text-slate-900">${c.model}</h4>
+                                    <span class="text-xs px-2 py-0.5 rounded-md font-bold text-red-700 bg-red-50 border border-red-200">👤 ${c.owner}</span>
+                                </div>
+                                <p class="text-[11px] font-mono text-slate-500 mt-0.5">VIN: ${c.vin || 'Qeyd edilməyib'} | Konteyner: ${c.container || '-'}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 uppercase font-bold block">Poti Gəliş Tarixi</span>
+                                <span class="text-sm font-mono font-black text-indigo-700">${formatDateDMY(c.poti)}</span>
+                            </div>
+                        </div>
+
+                        <div class="p-2.5 rounded-xl border ${noticeBg} text-xs flex items-center justify-between">
+                            <span>${daysNotice}</span>
+                            <span class="text-[11px] font-mono font-bold">Status: ${c.status}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                            <div class="p-3 rounded-xl border ${c.etibarname ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50 border-rose-200'} space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold ${c.etibarname ? 'text-emerald-800' : 'text-rose-800'}">
+                                        📜 Etibarnamə Statusu:
+                                    </span>
+                                    <span class="text-[11px] font-black ${c.etibarname ? 'text-emerald-700' : 'text-rose-700'}">
+                                        ${c.etibarname ? '✅ VERİLİB / GÖNDƏRİLİB' : '⚠️ HAZIR DEYİL!'}
+                                    </span>
+                                </div>
+
+                                ${!c.etibarname ? `
+                                    <p class="text-[11px] text-rose-700 leading-tight">
+                                        <strong>⚠️ DIQQƏT:</strong> Bu avtomobil Poti-yə çatır, lakin etibarnaməsi hələ hazır deyil! Sürücü üçün etibarnamə Gürcüstana göndərilməlidir.
+                                    </p>
+                                ` : ''}
+
+                                <button onclick="toggleEtibarnameStatus(${c.id})" class="w-full py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${c.etibarname ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm'}">
+                                    <i class="fa-solid ${c.etibarname ? 'fa-rotate-left' : 'fa-check'}"></i>
+                                    <span>${c.etibarname ? 'Qeydi Sıfırla (Hazır Deyil et)' : 'Etibarnamə Verildi kimi Qeyd Et'}</span>
+                                </button>
+                            </div>
+
+                            <div class="p-3 rounded-xl border ${c.shippingPaid ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50 border-amber-200'} space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold ${c.shippingPaid ? 'text-emerald-800' : 'text-amber-900'}">
+                                        💵 Yol Pulu Statusu:
+                                    </span>
+                                    <span class="text-[11px] font-black ${c.shippingPaid ? 'text-emerald-700' : 'text-amber-800'}">
+                                        ${c.shippingPaid ? '✅ ÖDƏNİLİB' : '⏳ GÖZLƏNİLİR'} ($${c.clientShipping || 0})
+                                    </span>
+                                </div>
+
+                                <button onclick="toggleShippingPaidStatus(${c.id})" class="w-full py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${c.shippingPaid ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' : 'bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm'}">
+                                    <i class="fa-solid ${c.shippingPaid ? 'fa-rotate-left' : 'fa-dollar-sign'}"></i>
+                                    <span>${c.shippingPaid ? 'Qeydi Sıfırla' : 'Yol Pulu Ödənildi kimi Qeyd Et'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleEtibarnameStatus(id) {
+            const index = cars.findIndex(c => c.id === id);
+            if (index !== -1) {
+                cars[index].etibarname = !cars[index].etibarname;
+                await saveData(cars[index].etibarname ? "📜 Etibarnamə verildi kimi qeyd olundu və cloud-a yazıldı!" : "⚠️ Etibarnamə hazır deyil kimi qeyd olundu və cloud-a yazıldı.");
+                renderPotiTrackingList();
+                renderApp();
+            }
+        }
+
+        async function toggleShippingPaidStatus(id) {
+            const index = cars.findIndex(c => c.id === id);
+            if (index !== -1) {
+                cars[index].shippingPaid = !cars[index].shippingPaid;
+                await saveData(cars[index].shippingPaid ? "💵 Yol pulu ödənildi kimi qeyd olundu və cloud-a yazıldı!" : "⏳ Yol pulu gözlənilir kimi qeyd olundu və cloud-a yazıldı.");
+                renderPotiTrackingList();
+                renderApp();
+            }
+        }
+
+        /* FORM VƏ MAŞIN İDARƏETMƏSİ */
+        function openModal(id = null) {
+            document.getElementById('carForm').reset();
+            tempAttachedDocs = [];
+            document.getElementById('form-id').value = id || '';
+            renderTrackingCompanySelect();
+            
+            if (id) {
+                const car = cars.find(c => c.id === parseInt(id));
+                if (car) {
+                    document.getElementById('modal-title').innerText = "✏️ Avtomobil Məlumatlarına Düzəliş Et";
+                    document.getElementById('form-owner').value = car.owner || '';
+                    document.getElementById('form-model').value = car.model || '';
+                    document.getElementById('form-vin').value = car.vin || '';
+                    document.getElementById('form-location').value = car.location || '';
+                    document.getElementById('form-shipping-port').value = car.shippingPort || '';
+                    document.getElementById('form-container').value = car.container || '';
+                    document.getElementById('form-tracking-company').value = car.trackingCompanyId || '';
+                    document.getElementById('form-udus').value = formatDateDMY(car.udus) || '';
+                    document.getElementById('form-anbar').value = formatDateDMY(car.anbar) || '';
+                    document.getElementById('form-poti').value = formatDateDMY(car.poti) || '';
+                    document.getElementById('form-baki').value = formatDateDMY(car.baki) || '';
+                    document.getElementById('form-status').value = car.status || 'Auksionda';
+                    document.getElementById('form-image-url').value = car.imageUrl || '';
+                    document.getElementById('form-car-cost').value = car.carCost || '';
+                    document.getElementById('form-real-shipping').value = car.realShipping || '';
+                    document.getElementById('form-client-shipping').value = car.clientShipping || '';
+                    document.getElementById('form-real-insurance').value = car.realInsurance || '';
+                    document.getElementById('form-client-insurance').value = car.clientInsurance || '';
+                    document.getElementById('form-real-poti-baku').value = car.realPotiBaku || '';
+                    document.getElementById('form-client-poti-baku').value = car.clientPotiBaku || '';
+                    document.getElementById('form-service-fee').value = car.serviceFee || '';
+                    document.getElementById('form-extra-cost').value = car.extraCost || '';
+                    document.getElementById('form-link').value = car.link || '';
+                    document.getElementById('form-etibarname').checked = !!car.etibarname;
+                    document.getElementById('form-shipping-paid').checked = !!car.shippingPaid;
+                    tempAttachedDocs = car.documents ? [...car.documents] : [];
+                }
+            } else {
+                document.getElementById('modal-title').innerText = "🚗 Yeni Avtomobil Əlavə Et";
+                document.getElementById('form-etibarname').checked = false;
+                document.getElementById('form-shipping-paid').checked = false;
+            }
+            renderAttachedDocsList();
+            document.getElementById('carModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('carModal').classList.add('hidden');
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('form-id').value;
+            const fileInput = document.getElementById('form-image-file');
+            let imageUrl = document.getElementById('form-image-url').value;
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async function(evt) {
+                    imageUrl = evt.target.result;
+                    await processSaveCar(id, imageUrl);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                await processSaveCar(id, imageUrl);
+            }
+        }
+
+        async function processSaveCar(id, imageUrl) {
+            // Redaktə zamanı köhnə qeyddə olan, lakin formada sahəsi olmayan
+            // əlavə açarları (məs: "track") itirməmək üçün əvvəlcə mövcud
+            // obyekti əsas götürürük, sonra forma dəyərləri ilə üzərinə yazırıq.
+            const existingCar = id ? cars.find(c => c.id === parseInt(id)) : null;
+            const carData = {
+                ...(existingCar || {}),
+                id: id ? parseInt(id) : Date.now(),
+                owner: document.getElementById('form-owner').value.trim(),
+                model: document.getElementById('form-model').value.trim(),
+                vin: document.getElementById('form-vin').value.trim(),
+                location: document.getElementById('form-location').value.trim(),
+                shippingPort: document.getElementById('form-shipping-port').value.trim(),
+                container: document.getElementById('form-container').value.trim(),
+                trackingCompanyId: document.getElementById('form-tracking-company').value ? parseInt(document.getElementById('form-tracking-company').value) : null,
+                udus: formatDateDMY(document.getElementById('form-udus').value.trim()) || document.getElementById('form-udus').value.trim(),
+                anbar: formatDateDMY(document.getElementById('form-anbar').value.trim()) || document.getElementById('form-anbar').value.trim(),
+                poti: formatDateDMY(document.getElementById('form-poti').value.trim()) || document.getElementById('form-poti').value.trim(),
+                baki: formatDateDMY(document.getElementById('form-baki').value.trim()) || document.getElementById('form-baki').value.trim(),
+                status: document.getElementById('form-status').value,
+                imageUrl: imageUrl,
+                carCost: parseFloat(document.getElementById('form-car-cost').value) || 0,
+                realShipping: parseFloat(document.getElementById('form-real-shipping').value) || 0,
+                clientShipping: parseFloat(document.getElementById('form-client-shipping').value) || 0,
+                realInsurance: parseFloat(document.getElementById('form-real-insurance').value) || 0,
+                clientInsurance: parseFloat(document.getElementById('form-client-insurance').value) || 0,
+                realPotiBaku: parseFloat(document.getElementById('form-real-poti-baku').value) || 0,
+                clientPotiBaku: parseFloat(document.getElementById('form-client-poti-baku').value) || 0,
+                serviceFee: parseFloat(document.getElementById('form-service-fee').value) || 0,
+                extraCost: parseFloat(document.getElementById('form-extra-cost').value) || 0,
+                link: document.getElementById('form-link').value.trim(),
+                documents: tempAttachedDocs,
+                etibarname: document.getElementById('form-etibarname').checked,
+                shippingPaid: document.getElementById('form-shipping-paid').checked
+            };
+
+            if (id) {
+                const index = cars.findIndex(c => c.id === parseInt(id));
+                cars[index] = carData;
+            } else {
+                cars.push(carData);
+            }
+
+            closeModal();
+            await saveData("✅ Avtomobil məlumatları cloud-a uğurla yazıldı!");
+        }
+
+        function editCar(id) {
+            openModal(id);
+        }
+
+        function promptDeleteCar(id) {
+            pendingDeleteCarId = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteCarId = null;
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        async function confirmDeleteCar() {
+            if (pendingDeleteCarId !== null) {
+                cars = cars.filter(c => c.id !== pendingDeleteCarId);
+                closeDeleteModal();
+                await saveData("🗑️ Avtomobil silindi və dəyişiklik cloud-a yazıldı!");
+            }
+        }
+
+        /* TƏK MAŞIN MALIYYƏ MODALI */
+        function openSingleCarFinance(id) {
+            if (!isAdminLoggedIn) {
+                pendingCarIdToView = id;
+                openPinPrompt();
+                return;
+            }
+
+            const c = cars.find(item => item.id === id);
+            if (!c) return;
+
+            document.getElementById('single-car-title').innerText = c.model;
+            document.getElementById('single-car-owner').innerText = `Müştəri: ${c.owner}`;
+
+            const netProfit = calculateCarNetProfit(c);
+            const clientTotal = (parseFloat(c.clientShipping) || 0) + (parseFloat(c.clientInsurance) || 0) + (parseFloat(c.clientPotiBaku) || 0);
+            const realTotal = (parseFloat(c.realShipping) || 0) + (parseFloat(c.realInsurance) || 0) + (parseFloat(c.realPotiBaku) || 0) + (parseFloat(c.extraCost) || 0);
+
+            let html = `
+                <div class="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-emerald-400 block">Xalis Mənfəət (Net Profit)</span>
+                        <span class="text-2xl font-black ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${netProfit >= 0 ? '+' : ''}$${netProfit.toLocaleString()}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] uppercase font-bold text-amber-400 block">Birbaşa Xidmət Haqqı</span>
+                        <span class="text-base font-bold text-amber-300">$${c.serviceFee || 0}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 space-y-1">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Müştəriyə Deyilən Dövriyyə</span>
+                        <div class="flex justify-between"><span>Nəqliyyat:</span><span class="font-mono">$${c.clientShipping || 0}</span></div>
+                        <div class="flex justify-between"><span>Sığorta:</span><span class="font-mono">$${c.clientInsurance || 0}</span></div>
+                        <div class="flex justify-between"><span>Poti-Bakı:</span><span class="font-mono">$${c.clientPotiBaku || 0}</span></div>
+                        <div class="border-t border-slate-700 pt-1 flex justify-between font-bold text-emerald-400"><span>Cəmi:</span><span class="font-mono">$${clientTotal}</span></div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-3 rounded-xl border border-slate-800 space-y-1">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold block">Real Şirkət Çıxarışları</span>
+                        <div class="flex justify-between"><span>Nəqliyyat:</span><span class="font-mono">$${c.realShipping || 0}</span></div>
+                        <div class="flex justify-between"><span>Sığorta:</span><span class="font-mono">$${c.realInsurance || 0}</span></div>
+                        <div class="flex justify-between"><span>Poti-Bakı:</span><span class="font-mono">$${c.realPotiBaku || 0}</span></div>
+                        <div class="flex justify-between text-rose-400"><span>Əlavə Xərc:</span><span class="font-mono">$${c.extraCost || 0}</span></div>
+                        <div class="border-t border-slate-700 pt-1 flex justify-between font-bold text-rose-400"><span>Cəmi Real:</span><span class="font-mono">$${realTotal}</span></div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('single-car-details').innerHTML = html;
+            document.getElementById('singleCarFinanceModal').classList.remove('hidden');
+        }
+
+        function closeSingleCarFinanceModal() {
+            document.getElementById('singleCarFinanceModal').classList.add('hidden');
+        }
+
+        /* EKRANDA KARTLAR VƏ CƏDVƏL GÖRÜNÜŞÜ */
+        function renderCarsContainer() {
+            const container = document.getElementById('cars-container');
+            const filteredCars = getFilteredCars();
+
+            if (filteredCars.length === 0) {
+                if (cars.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-3xl p-12 text-center border border-slate-200">
+                            <i class="fa-solid fa-folder-open text-4xl text-blue-300 mb-3 block"></i>
+                            <h3 class="text-base font-bold text-slate-700">Hələ heç bir məlumat yüklənməyib</h3>
+                            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Onlayn (JSONBin) datası ya boşdur, ya da hələ yüklənməyib. Bir neçə saniyə gözləyin və ya "Yeni Maşın" əlavə edərək başlayın.</p>
+                            <button onclick="loadDataFromCloud()" class="mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-xl transition inline-flex items-center gap-2">
+                                <i class="fa-solid fa-rotate"></i> Yenidən Yüklə
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-3xl p-12 text-center border border-slate-200">
+                            <i class="fa-solid fa-car text-4xl text-slate-300 mb-3 block"></i>
+                            <h3 class="text-base font-bold text-slate-700">Heç bir avtomobil tapılmadı</h3>
+                            <p class="text-xs text-slate-400 mt-1">Axtarış parametrlərini dəyişin və ya yeni maşın əlavə edin.</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            if (currentViewMode === 'card') {
+                renderCardGrid(container, filteredCars);
+            } else {
+                renderTableView(container, filteredCars);
+            }
+        }
+
+        function renderCardGrid(container, filteredCars) {
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">`;
+            
+            filteredCars.forEach(c => {
+                const pickupDays = diffDays(c.udus, c.anbar);
+                const shipDays = diffDays(c.udus, c.poti);
+                const potiBakiDays = diffDays(c.poti, c.baki);
+                const totalDays = diffDays(c.udus, c.baki || new Date().toISOString().split('T')[0]);
+                const netProfit = calculateCarNetProfit(c);
+
+                let statusBadge = "bg-slate-100 text-slate-700";
+                if (c.status === 'Potidədir') statusBadge = "bg-purple-100 text-purple-800 font-bold border border-purple-200";
+                else if (c.status === 'Bakıdadır') statusBadge = "bg-emerald-100 text-emerald-800 font-bold border border-emerald-200";
+                else if (c.status === 'Gəmidə') statusBadge = "bg-blue-100 text-blue-800 font-bold border border-blue-200";
+
+                html += `
+                    <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300 flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-48 bg-slate-900 overflow-hidden group">
+                                ${c.imageUrl ? `
+                                    <img src="${c.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${c.model}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full flex-col items-center justify-center text-slate-600 bg-slate-800" style="display:none;">
+                                        <i class="fa-solid fa-image text-3xl mb-1"></i>
+                                        <span class="text-[11px] font-medium">Şəkil yüklənmədi</span>
+                                    </div>
+                                ` : `
+                                    <div class="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-800">
+                                        <i class="fa-solid fa-image text-3xl mb-1"></i>
+                                        <span class="text-[11px] font-medium">Şəkil yoxdur</span>
+                                    </div>
+                                `}
+                                <div class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur text-white text-[11px] font-extrabold px-3 py-1 rounded-full border border-slate-700">
+                                    👤 ${c.owner || 'Sahiblənməyib'}
+                                </div>
+                                <div class="absolute top-3 right-3">
+                                    <span class="text-[11px] px-3 py-1 rounded-full shadow-md ${statusBadge}">
+                                        ${c.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="p-5 space-y-4">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h3 class="font-extrabold text-base text-slate-900 tracking-tight leading-snug">${c.model}</h3>
+                                        <p class="text-[11px] font-mono text-slate-400 mt-0.5">VIN: ${c.vin || 'Qeyd edilməyib'}</p>
+                                    </div>
+                                    ${c.link ? `<a href="${c.link}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+                                </div>
+
+                                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                                    <div class="flex items-center justify-between text-slate-700 font-medium">
+                                        <span class="text-slate-400">Məkan:</span>
+                                        <span class="font-semibold text-amber-800 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">📍 ${c.location || '-'}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-slate-700 font-medium">
+                                        <span class="text-slate-400">Çıxış Portu:</span>
+                                        <span class="font-semibold text-blue-800 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-md">⚓ ${c.shippingPort || '-'}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-slate-700 font-medium">
+                                        <span class="text-slate-400">Konteyner:</span>
+                                        <span class="font-mono text-xs font-bold text-slate-800">${c.container || '-'}</span>
+                                    </div>
+                                    ${c.container ? `
+                                        <button type="button" onclick="copyContainerAndTrack(${c.id})" oncontextmenu="copyContainerAndTrack(${c.id}, event)" title="Sol/sağ klik: Konteyneri kopyala və izləmə saytına get" class="w-full flex items-center justify-center gap-2 py-2 mt-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-[11px] font-bold transition">
+                                            <i class="fa-solid fa-anchor"></i> Konteyneri İzlə
+                                        </button>
+                                    ` : ''}
+                                </div>
+
+                                <div class="flex items-center gap-2 text-[11px] font-bold">
+                                    <span class="px-2.5 py-1 rounded-lg border ${c.etibarname ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'}">
+                                        ${c.etibarname ? '📜 Etibarnamə Verilib' : '⚠️ Etibarnamə Yoxdur'}
+                                    </span>
+                                    <span class="px-2.5 py-1 rounded-lg border ${c.shippingPaid ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}">
+                                        ${c.shippingPaid ? '💵 Yol Pulu Ödənilib' : '⏳ Yol Pulu Gözlənilir'}
+                                    </span>
+                                </div>
+
+                                <div class="space-y-1.5 text-[11px]">
+                                    <div class="flex justify-between items-center text-slate-600">
+                                        <span>Uduş tarixi:</span>
+                                        <span class="font-mono font-bold text-slate-900">${formatDateDMY(c.udus) || '-'}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-slate-600">
+                                        <span>Anbara giriş:</span>
+                                        <span class="font-mono text-slate-800">${formatDateDMY(c.anbar) || '-'} ${pickupDays !== null ? `<strong class="text-amber-600">(${pickupDays}g)</strong>` : ''}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-indigo-900 font-medium">
+                                        <span>Potiyə giriş:</span>
+                                        <span class="font-mono font-bold text-indigo-700">${formatDateDMY(c.poti) || '-'} ${shipDays !== null ? `<strong class="text-indigo-600">(${shipDays}g)</strong>` : ''}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center text-slate-600">
+                                        <span>Bakı-Gömrük</span>
+                                        <span class="font-mono text-slate-800">${formatDateDMY(c.baki) || '-'} ${potiBakiDays !== null ? `<strong class="text-emerald-600">(${potiBakiDays}g)</strong>` : ''}</span>
+                                    </div>
+                                    ${totalDays !== null ? `
+                                        <div class="pt-2 border-t border-slate-100 flex justify-between items-center font-bold text-slate-900">
+                                            <span>Ümumi Keçən Müddət:</span>
+                                            <span class="font-mono text-red-600">${totalDays} Gün</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                ${isAdminLoggedIn ? `
+                                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center justify-between">
+                                        <span class="text-xs font-bold text-amber-900">Net Mənfəət:</span>
+                                        <span class="text-base font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${netProfit >= 0 ? '+' : ''}$${netProfit.toLocaleString()}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <button onclick="openSingleCarFinance(${c.id})" title="Fərdi Maliyyə" class="p-2.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-amber-200">
+                                <i class="fa-solid fa-lock"></i> 
+                            </button>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="editCar(${c.id})" title="Düzəliş et" class="p-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="promptDeleteCar(${c.id})" title="Sil" class="p-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-xs font-bold transition border border-rose-200">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderTableView(container, filteredCars) {
+            let html = `
+                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-900 text-white uppercase text-[10px] font-black tracking-wider">
+                                <th class="p-4">Uduş Tarixi</th>
+                                <th class="p-4">Poti Gəliş</th>
+                                <th class="p-4">Müştəri (Sahibi)</th>
+                                <th class="p-4">Avtomobil Modeli</th>
+                                <th class="p-4">Etibarnamə</th>
+                                <th class="p-4">Yol Pulu</th>
+                                <th class="p-4">Yerləşdiyi Yer</th>
+                                <th class="p-4">Konteyner</th>
+                                ${isAdminLoggedIn ? `<th class="p-4 text-emerald-400">Net Mənfəət ($)</th>` : ''}
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-center">Əməliyyat</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+            `;
+
+            filteredCars.forEach(c => {
+                const netProfit = calculateCarNetProfit(c);
+                html += `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="p-4 font-mono font-bold text-slate-500">${formatDateDMY(c.udus) || '-'}</td>
+                        <td class="p-4 font-mono font-bold ${c.poti ? 'text-indigo-600' : 'text-amber-600'}">${c.poti ? formatDateDMY(c.poti) : '⚠️ Təyin edilməyib'}</td>
+                        <td class="p-4 font-bold text-red-600 flex items-center gap-2">
+                            <span>👤 ${c.owner || '-'}</span>
+                        </td>
+                        <td class="p-4 font-bold text-slate-900">${c.model}</td>
+                        <td class="p-4">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.etibarname ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                ${c.etibarname ? '📜 Verilib' : '⚠️ Yoxdur'}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.shippingPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                ${c.shippingPaid ? '💵 Ödənilib' : '⏳ Gözlənilir'}
+                            </span>
+                        </td>
+                        <td class="p-4 font-semibold text-slate-800">📍 ${c.location || '-'}</td>
+                        <td class="p-4 font-mono font-semibold text-xs text-slate-800">
+                            <div class="flex items-center gap-2">
+                                <span>${c.container || '-'}</span>
+                                ${c.container ? `<button type="button" onclick="copyContainerAndTrack(${c.id})" oncontextmenu="copyContainerAndTrack(${c.id}, event)" title="Sol/sağ klik: Konteyneri kopyala və izləmə saytına get" class="p-1.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-200 hover:bg-indigo-100"><i class="fa-solid fa-anchor"></i></button>` : ''}
+                            </div>
+                        </td>
+                        ${isAdminLoggedIn ? `<td class="p-4 font-black ${netProfit>=0?'text-emerald-600':'text-rose-600'}">${netProfit>=0?'+':''}$${netProfit.toLocaleString()}</td>` : ''}
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${c.status}</span></td>
+                        <td class="p-4 text-center">
+                            <div class="flex items-center justify-center space-x-1.5">
+                                <button onclick="openSingleCarFinance(${c.id})" class="p-1.5 bg-amber-50 text-amber-700 rounded border border-amber-200 hover:bg-amber-100"><i class="fa-solid fa-lock"></i></button>
+                                <button onclick="editCar(${c.id})" class="p-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="promptDeleteCar(${c.id})" class="p-1.5 bg-rose-50 text-rose-700 rounded border border-rose-200 hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderAttachedDocsList() {
+            const container = document.getElementById('attached-docs-list');
+            if (tempAttachedDocs.length === 0) {
+                container.innerHTML = `<span class="text-[11px] text-slate-400">Heç bir sənəd əlavə edilməyib</span>`;
+                return;
+            }
+            container.innerHTML = tempAttachedDocs.map((d, index) => `
+                <div class="flex items-center justify-between bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
+                    <div class="flex items-center space-x-2 truncate">
+                        <i class="fa-solid fa-file-contract text-blue-600"></i>
+                        <span class="font-bold text-slate-800">${d.type}:</span>
+                        <span class="text-slate-600 truncate max-w-[150px]">${d.fileName}</span>
+                    </div>
+                    <button type="button" onclick="removeAttachedDoc(${index})" class="text-rose-500 hover:text-rose-700 ml-2"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function removeAttachedDoc(index) {
+            tempAttachedDocs.splice(index, 1);
+            renderAttachedDocsList();
+        }
+
+        /* YEKUN MALIYYƏ HESABATI MODALI */
+        function openFinalFinanceReport() {
+            if (!isAdminLoggedIn) {
+                openPinPrompt();
+                return;
+            }
+
+            const targetCars = getFilteredCars();
+            let carCostsTotal = 0, clientShipTotal = 0, clientInsTotal = 0, clientPotiTotal = 0;
+            let realShipTotal = 0, realInsTotal = 0, realPotiTotal = 0, serviceFeeTotal = 0, extraCostTotal = 0;
+
+            targetCars.forEach(c => {
+                carCostsTotal += parseFloat(c.carCost) || 0;
+                clientShipTotal += parseFloat(c.clientShipping) || 0;
+                clientInsTotal += parseFloat(c.clientInsurance) || 0;
+                clientPotiTotal += parseFloat(c.clientPotiBaku) || 0;
+
+                realShipTotal += parseFloat(c.realShipping) || 0;
+                realInsTotal += parseFloat(c.realInsurance) || 0;
+                realPotiTotal += parseFloat(c.realPotiBaku) || 0;
+                serviceFeeTotal += parseFloat(c.serviceFee) || 0;
+                extraCostTotal += parseFloat(c.extraCost) || 0;
+            });
+
+            const clientTotalSum = carCostsTotal + clientShipTotal + clientInsTotal + clientPotiTotal + serviceFeeTotal;
+            const realCostsSum = realShipTotal + realInsTotal + realPotiTotal + extraCostTotal;
+            const netProfit = (clientShipTotal + clientInsTotal + clientPotiTotal - realCostsSum) + serviceFeeTotal;
+
+            document.getElementById('report-date').innerText = new Date().toLocaleDateString('az-AZ');
+            document.getElementById('report-total-cars-count').innerText = targetCars.length;
+            document.getElementById('rpt-client-total').innerText = `$${clientTotalSum.toLocaleString()}`;
+            document.getElementById('rpt-real-total').innerText = `$${realCostsSum.toLocaleString()}`;
+            document.getElementById('rpt-service-total').innerText = `$${serviceFeeTotal.toLocaleString()}`;
+            document.getElementById('rpt-net-profit').innerText = `${netProfit >= 0 ? '+' : ''}$${netProfit.toLocaleString()}`;
+
+            document.getElementById('rpt-car-costs').innerText = `$${carCostsTotal.toLocaleString()}`;
+            document.getElementById('rpt-client-ship').innerText = `$${clientShipTotal.toLocaleString()}`;
+            document.getElementById('rpt-client-ins').innerText = `$${clientInsTotal.toLocaleString()}`;
+            document.getElementById('rpt-client-poti').innerText = `$${clientPotiTotal.toLocaleString()}`;
+            document.getElementById('rpt-service-fee-sub').innerText = `$${serviceFeeTotal.toLocaleString()}`;
+
+            document.getElementById('rpt-real-ship').innerText = `$${realShipTotal.toLocaleString()}`;
+            document.getElementById('rpt-real-ins').innerText = `$${realInsTotal.toLocaleString()}`;
+            document.getElementById('rpt-real-poti').innerText = `$${realPotiTotal.toLocaleString()}`;
+            document.getElementById('rpt-extra-costs').innerText = `$${extraCostTotal.toLocaleString()}`;
+            document.getElementById('rpt-real-total-sub').innerText = `$${realCostsSum.toLocaleString()}`;
+
+            const analysisEl = document.getElementById('rpt-analysis-text');
+            if (netProfit > 0) {
+                analysisEl.innerText = `Maliyyə portfeli müsbət (+) göstəricidədir. Şirkət seçilmiş şərtlər üzrə xalis $${netProfit.toLocaleString()} mənfəət əldə edib. Logistika xərclərinin optimallaşdırılması tövsiyə olunur.`;
+            } else if (netProfit === 0) {
+                analysisEl.innerText = `Maliyyə balansı sıfır ($0) səviyyəsindədir. Müştəriyə deyilən xərclər şirkətin real ödənişlərini tam qarşılayır.`;
+            } else {
+                analysisEl.innerText = `⚠️ XƏBƏRDARLIQ: Maliyyə portfeli mənfi (-) göstəricidədir ($${netProfit.toLocaleString()}). Real nəqliyyat və ya sığorta xərcləri müştəriyə deyilən qiymətlərdən yuxarı olub.`;
+            }
+
+            document.getElementById('finalFinanceReportModal').classList.remove('hidden');
+        }
+
+        function closeFinalFinanceReport() {
+            document.getElementById('finalFinanceReportModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
